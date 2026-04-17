@@ -25,7 +25,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 		if cookieToken != "" {
 			token = "Bearer " + cookieToken
 		}
-	}
+	}   
 
 	if token == "" || token == "Bearer" {
 		log.Println("no valid token found")
