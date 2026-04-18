@@ -32,16 +32,16 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	// app.Get("/ws",
-	// 	middleware.AuthMiddleware,
-	// 	websocket.New(handlers.HandleWebSocket(msgRepo)),
-	// )
 	app.Use("/ws", func(c *fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(c) {
 			return c.Next()
 		}
 		return fiber.ErrUpgradeRequired
 	})
+	app.Get("/ws",
+		middleware.AuthMiddleware,
+		websocket.New(handlers.HandleWebSocket(msgRepo)),
+	)
 
 	api := app.Group("/messages", middleware.AuthMiddleware)
 	api.Get("/conversations", msgHandler.GetConversationList)
