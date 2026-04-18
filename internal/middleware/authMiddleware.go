@@ -15,17 +15,21 @@ type VerifyResponse struct {
 }
 
 func AuthMiddleware(c *fiber.Ctx) error {
-	// in fiber v2, get full authorization header
+
 	token := c.Get("Authorization")
-	log.Println("Authorization header length:", len(token))
 
 	if token == "" {
 		cookieToken := c.Cookies("access-token")
-		log.Println("Cookie token length:", len(cookieToken))
 		if cookieToken != "" {
 			token = "Bearer " + cookieToken
 		}
 	}   
+	if token == "" {
+		queryToken := c.Query("token")
+		if queryToken != "" {
+			token = "Bearer " + queryToken
+		}
+	}
 
 	if token == "" || token == "Bearer" {
 		log.Println("no valid token found")

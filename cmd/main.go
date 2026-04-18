@@ -26,24 +26,29 @@ func main() {
 
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:5173,https://hood-hire-frontend.vercel.app/",
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
-		AllowMethods: "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+		AllowOrigins:     "http://localhost:5173,https://hood-hire-frontend.vercel.app",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowMethods:     "GET, POST, PUT, PATCH, DELETE, OPTIONS",
 		AllowCredentials: true,
 	}))
 
-	
-	app.Get("/ws",
-		middleware.AuthMiddleware,
-		websocket.New(handlers.HandleWebSocket(msgRepo)),
-	)
+	// app.Get("/ws",
+	// 	middleware.AuthMiddleware,
+	// 	websocket.New(handlers.HandleWebSocket(msgRepo)),
+	// )
+	app.Use("/ws", func(c *fiber.Ctx) error {
+		if websocket.IsWebSocketUpgrade(c) {
+			return c.Next()
+		}
+		return fiber.ErrUpgradeRequired
+	})
 
 	api := app.Group("/messages", middleware.AuthMiddleware)
 	api.Get("/conversations", msgHandler.GetConversationList)
 	api.Get("/unread", msgHandler.GetUnreadCount)
-	api.Get("/unread/breakdown", msgHandler.GetUnreadBreakdown) 
-	api.Post("/upload", msgHandler.UploadFile)                  
-	api.Get("/:userID", msgHandler.GetConversation)             
+	api.Get("/unread/breakdown", msgHandler.GetUnreadBreakdown)
+	api.Post("/upload", msgHandler.UploadFile)
+	api.Get("/:userID", msgHandler.GetConversation)
 	api.Patch("/:userID/read", msgHandler.MarkAsRead)
 
 	port := os.Getenv("PORT")
